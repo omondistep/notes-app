@@ -664,6 +664,35 @@ html, body {
 }
 
 .note-content strong { color: var(--text-primary); }
+
+/* Typora-like Markdown Tweaks */
+.note-content table {
+  margin-bottom: 24px;
+}
+
+.note-content input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: var(--accent-blue);
+}
+
+.note-content blockquote {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.note-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  background-color: var(--bg-hover);
+}
+
+.note-content pre code {
+  padding: 0;
+  background-color: transparent;
+}
+
 .note-content a { color: var(--accent-blue); text-decoration: none; }
 .note-content a:hover { text-decoration: underline; }
 .note-content img { max-width: 100%; border-radius: var(--radius-sm); }

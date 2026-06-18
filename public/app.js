@@ -1,3 +1,14 @@
+// Initialize Marked with Highlight.js
+marked.setOptions({
+  highlight: function(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    return hljs.highlight(code, { language }).value;
+  },
+  langPrefix: 'hljs language-',
+  gfm: true,
+  breaks: true
+});
+
 let subjects = [];
 let notes = [];
 let activeSubjectId = null;
