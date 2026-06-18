@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KSTVET Notes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="header-content">
+          <h1>KSTVET Notes</h1>
+          <p class="subtitle">TERM 1 Study Hub</p>
+        </div>
+        <div class="theme-control">
+          <select id="themeSelect" class="theme-select">
+            <option value="catppuccin">Catppuccin</option>
+            <option value="evergreen">Evergreen</option>
+            <option value="gruvbox">Gruvbox</option>
+            <option value="solarized">Solarized Dark</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search notes..." />
+      </div>
+      <nav id="subjectList"></nav>
+      <button id="addSubjectBtn" class="btn-secondary">+ Add Subject</button>
+    </aside>
+
+    <main id="main">
+      <div id="notesPanel">
+        <div class="panel-header">
+          <h2 id="panelTitle">Select a subject</h2>
+          <div class="panel-actions">
+            <button id="addNoteBtn" class="btn-primary" style="display:none">+ New Note</button>
+          </div>
+        </div>
+        <div id="notesList"></div>
+        <div id="dropZone" class="drop-zone">
+          <div class="drop-zone-content">
+            <span>📁 Drag files to upload</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="editorPanel">
+        <div id="emptyState">
+          <div class="empty-icon">📝</div>
+          <h2>Welcome to KSTVET Notes</h2>
+          <p>Select a subject from the sidebar to view your notes, or create a new one.</p>
+          <div class="quick-tips">
+            <h3>Quick Tips</h3>
+            <ul>
+              <li>Browse notes by subject category</li>
+              <li>Use the search bar to find specific content</li>
+              <li>Create and edit notes directly in the browser</li>
+              <li>Notes support Markdown formatting</li>
+            </ul>
+          </div>
+        </div>
+        <div id="noteViewer" style="display:none">
+          <div class="editor-header">
+            <input type="text" id="noteTitle" class="note-title-input" placeholder="Note title..." />
+            <div class="editor-actions">
+              <button id="editToggleBtn" class="btn-secondary">Edit</button>
+              <button id="deleteNoteBtn" class="btn-danger">Delete</button>
+            </div>
+          </div>
+          <div id="fileBar" class="file-bar" style="display:none"></div>
+          <div id="noteContent" class="note-content"></div>
+          <div id="pdfViewer" class="pdf-viewer" style="display:none"></div>
+          <div id="noPreview" class="no-preview" style="display:none"></div>
+          <textarea id="noteEditor" class="note-editor" style="display:none" placeholder="Write your note here... Markdown supported."></textarea>
+          <div id="editorActions" class="editor-actions-bar" style="display:none">
+            <button id="saveNoteBtn" class="btn-primary">Save</button>
+            <button id="cancelEditBtn" class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="subjectModal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <h2>Add Subject</h2>
+      <input type="text" id="subjectNameInput" placeholder="Subject name" />
+      <input type="text" id="subjectDescInput" placeholder="Description (optional)" />
+      <div class="modal-actions">
+        <button id="saveSubjectBtn" class="btn-primary">Save</button>
+        <button id="cancelSubjectBtn" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="noteModal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <h2>New Note</h2>
+      <input type="text" id="noteNameInput" placeholder="Note title" />
+      <div class="modal-actions">
+        <button id="saveNoteNameBtn" class="btn-primary">Create</button>
+        <button id="cancelNoteNameBtn" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

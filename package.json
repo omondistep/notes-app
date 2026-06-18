@@ -1,0 +1,20 @@
+{
+  "name": "kstvet-notes",
+  "version": "1.0.0",
+  "description": "Study notes manager for KSTVET TERM 1",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "chokidar": "^5.0.0",
+    "express": "^4.18.0",
+    "highlight.js": "^11.11.1",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.12.0",
+    "marked": "^12.0.0",
+    "multer": "^2.2.0",
+    "sql.js": "^1.10.0"
+  }
+}
