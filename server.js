@@ -70,6 +70,9 @@ app.get('/api/file', (req, res) => {
   const filePath = req.query.path;
   if (!filePath) return res.status(400).json({ error: 'Path required' });
   const content = db.readFileContent(filePath);
+  if (content === '[File not found]' || content === '[Error reading file]') {
+    return res.status(404).json({ error: content });
+  }
   res.json({ content });
 });
 

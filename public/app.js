@@ -287,6 +287,14 @@ async function showNoteViewer(note) {
       contentArea.style.display = 'block';
       contentArea.innerHTML = `<iframe src="/api/file/serve?path=${encodeURIComponent(fp)}" class="html-embed" title="HTML Viewer"></iframe>`;
     }
+    // Check if file exists; if not, show DB content and hide download
+    try {
+      await api(`/api/file?path=${encodeURIComponent(fp)}`);
+    } catch {
+      contentArea.style.display = 'block';
+      contentArea.innerHTML = marked.parse(note.content || '*No content*');
+      renderFileBar(null, ft);
+    }
   } else {
     editBtn.style.display = 'none';
     delBtn.style.display = '';
@@ -298,10 +306,10 @@ async function showNoteViewer(note) {
           ? `<iframe srcdoc="${attrEncode(r.html)}" class="html-embed"></iframe>`
           : r.html;
       } else {
-        showNoPreview(fp, ft);
+        showNoPreview(fp, ft, note.content);
       }
     } catch {
-      showNoPreview(fp, ft);
+      showNoPreview(fp, ft, note.content);
     }
   }
 
@@ -328,9 +336,17 @@ function renderFileBar(fp, ft) {
     <a href="/api/file/serve?path=${encodeURIComponent(fp)}" download class="btn-secondary btn-sm">Download</a>`;
 }
 
-function showNoPreview(fp, ft) {
+function showNoPreview(fp, ft, content) {
   const np = el('noPreview');
   np.style.display = 'flex';
+  if (content && fp) {
+    // File not on disk but DB has content — show it instead
+    el('noteContent').style.display = 'block';
+    el('noteContent').innerHTML = marked.parse(content);
+    el('noPreview').style.display = 'none';
+    renderFileBar(null, ft);
+    return;
+  }
   np.innerHTML = `
     <div class="no-preview-content">
       <span class="no-preview-icon">${getFileIcon(ft)}</span>
