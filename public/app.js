@@ -1,19 +1,75 @@
 // Initialize Marked with Highlight.js
-marked.setOptions({
-  highlight: function(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-    return hljs.highlight(code, { language }).value;
-  },
-  langPrefix: 'hljs language-',
-  gfm: true,
-  breaks: true
-});
+(function() {
+  if (typeof marked === 'undefined') {
+    console.warn('marked library not loaded - markdown rendering disabled');
+    return;
+  }
+  if (typeof markedHighlight !== 'undefined') {
+    try {
+      marked.use(markedHighlight({
+        langPrefix: 'hljs language-',
+        highlight: function(code, lang) {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+          return hljs.highlight(code, { language }).value;
+        }
+      }));
+    } catch (e) {
+      console.warn('markedHighlight init failed, falling back:', e);
+      marked.setOptions({
+        highlight: function(code, lang) {
+          try {
+            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+            return hljs.highlight(code, { language }).value;
+          } catch(e2) {
+            return code;
+          }
+        },
+        langPrefix: 'hljs language-',
+      });
+    }
+  } else {
+    marked.setOptions({
+      highlight: function(code, lang) {
+        try {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+          return hljs.highlight(code, { language }).value;
+        } catch(e) {
+          return code;
+        }
+      },
+      langPrefix: 'hljs language-',
+    });
+  }
+  marked.setOptions({ gfm: true, breaks: true });
+})();
 
 let subjects = [];
 let notes = [];
 let activeSubjectId = null;
 let activeNoteId = null;
 let isEditing = false;
+let cm = null;
+
+// Initialize CodeMirror
+function initEditor() {
+  if (cm || typeof CodeMirror === 'undefined') return;
+  try {
+    cm = CodeMirror.fromTextArea(el('noteEditor'), {
+      mode: 'markdown',
+      theme: 'base16-dark',
+      lineNumbers: true,
+      keyMap: 'vim',
+      showCursorWhenSelecting: true,
+      lineWrapping: true
+    });
+    CodeMirror.on(cm, 'vim-mode-change', (e) => {
+      const bar = el('vim-status-bar');
+      if (bar) bar.textContent = `-- ${e.mode.toUpperCase()} --`;
+    });
+  } catch (e) {
+    console.warn('CodeMirror init failed:', e);
+  }
+}
 
 const subjectIcons = {
   'ACCOUNTING': '📊', 'CBET': '📋', 'Economic': '💰', 'Economi': '💰',
@@ -209,7 +265,16 @@ async function showNoteViewer(note) {
 
   if (inline || !fp) {
     contentArea.style.display = 'block';
-    contentArea.innerHTML = marked.parse(note.content || '*No content*');
+    if (fp) {
+      try {
+        const fileData = await api(`/api/file?path=${encodeURIComponent(fp)}`);
+        contentArea.innerHTML = marked.parse(fileData.content || '*No content*');
+      } catch {
+        contentArea.innerHTML = marked.parse(note.content || '*No content*');
+      }
+    } else {
+      contentArea.innerHTML = marked.parse(note.content || '*No content*');
+    }
     editBtn.style.display = '';
     delBtn.style.display = '';
   } else if (embed) {
@@ -241,6 +306,10 @@ async function showNoteViewer(note) {
   }
 
   el('noteEditor').style.display = 'none';
+  const cmWrapper = document.querySelector('.CodeMirror');
+  if (cmWrapper) cmWrapper.style.display = 'none';
+  const statusBar = el('vim-status-bar');
+  if (statusBar) statusBar.style.display = 'none';
   el('editorActions').style.display = 'none';
   el('editToggleBtn').textContent = 'Edit';
 }
@@ -328,17 +397,41 @@ el('cancelNoteNameBtn').addEventListener('click', () => el('noteModal').style.di
 el('editToggleBtn').addEventListener('click', () => {
   isEditing = !isEditing;
   const c = el('noteContent');
-  const e = el('noteEditor');
+  const eWrapper = document.querySelector('.CodeMirror');
+  const statusBar = el('vim-status-bar');
+  const editorActions = el('editorActions');
+
   if (isEditing) {
+    initEditor();
     c.style.display = 'none';
-    e.style.display = 'block';
-    fetch(`/api/notes/${activeNoteId}`).then(r => r.json()).then(n => e.value = n.content || '');
-    el('editorActions').style.display = 'flex';
+    const cmWrapper = document.querySelector('.CodeMirror');
+    if (cmWrapper) cmWrapper.style.display = 'block';
+    if (statusBar) statusBar.style.display = 'block';
+    fetch(`/api/notes/${activeNoteId}`).then(r => r.json()).then(n => {
+      if (n.file_path) {
+        fetch(`/api/file?path=${encodeURIComponent(n.file_path)}`).then(r => r.json()).then(fd => {
+          cm.setValue(fd.content || '');
+          cm.refresh();
+          cm.focus();
+        }).catch(() => {
+          cm.setValue(n.content || '');
+          cm.refresh();
+          cm.focus();
+        });
+      } else {
+        cm.setValue(n.content || '');
+        cm.refresh();
+        cm.focus();
+      }
+    });
+    editorActions.style.display = 'flex';
     el('editToggleBtn').textContent = 'Preview';
   } else {
     c.style.display = 'block';
-    e.style.display = 'none';
-    el('editorActions').style.display = 'none';
+    const cmWrapper = document.querySelector('.CodeMirror');
+    if (cmWrapper) cmWrapper.style.display = 'none';
+    if (statusBar) statusBar.style.display = 'none';
+    editorActions.style.display = 'none';
     el('editToggleBtn').textContent = 'Edit';
   }
 });
@@ -346,7 +439,7 @@ el('editToggleBtn').addEventListener('click', () => {
 // Save / Cancel edit
 el('saveNoteBtn').addEventListener('click', async () => {
   const title = el('noteTitle').value.trim();
-  const content = el('noteEditor').value;
+  const content = cm ? cm.getValue() : el('noteEditor').value;
   if (!title || !activeNoteId) return;
   const note = await api(`/api/notes/${activeNoteId}`, { method: 'PUT', body: JSON.stringify({ title, content }) });
   isEditing = false;

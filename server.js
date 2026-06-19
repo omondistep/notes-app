@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const mammoth = require('mammoth');
 const JSZip = require('jszip');
+const chokidar = require('chokidar');
+const ROOT_DIR = path.resolve(__dirname, '..');
 const db = require('./database');
 
 const app = express();
@@ -177,6 +179,8 @@ app.get('/api/file/read', async (req, res) => {
     } else if (ext === '.html') {
       html = fs.readFileSync(fullPath, 'utf-8');
       format = 'raw';
+    } else if (ext === '.md' || ext === '.txt') {
+      html = fs.readFileSync(fullPath, 'utf-8');
     } else {
       html = '<p>[Preview not available for this file type]</p>';
     }
